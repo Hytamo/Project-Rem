@@ -7,32 +7,6 @@ using System.Threading.Tasks;
 
 namespace Project_Rem
 {
-//    static class Parameters
-//    {
-//        /// <summary>
-//        /// Thread-safe locker
-//        /// </summary>
-//        static object locker = new object();
-//
-//        /// <summary>
-//        /// Name of our Bot
-//        /// </summary>
-//        public static string BotName
-//        {
-//            get
-//            {
-//                return BotName;
-//            }
-//            set
-//            {
-//                lock (locker)
-//                {
-//                    BotName = value;
-//                }
-//            }
-//        }
-//    }
-
     public class Message
     {
         public string message;
@@ -40,9 +14,17 @@ namespace Project_Rem
         public bool whisper;
         public string whisperTarget;
         public bool system;
+        public string sender;
         private Message() { }
-        public Message(string mes, string roomname, bool whis, string tar, bool sys = false)
-        { message = mes; room = roomname; whisper = whis; whisperTarget = tar; system = sys; }
+        public Message(string mes, string roomname, string originalsender, bool whis = false, string tar = null, bool sys = false)
+        {
+            message = mes;
+            system = sys;
+            whisper = whis;
+            room = roomname == null ? null : roomname.Replace("#", "").ToLowerInvariant();
+            whisperTarget = tar == null ? null : tar.ToLowerInvariant();
+            sender = originalsender == null ? null : originalsender.ToLowerInvariant();
+        }
     }
 
 }

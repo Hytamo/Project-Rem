@@ -9,8 +9,9 @@ namespace Project_Rem.Twitch
     class TwitchRoom
     {
         string RoomName;
-//        List<TwitchUser> Users;
-//        List<string> ChatLog;
+        int MaxMessageStorageSize;
+        List<Message> ChatLog;
+        List<TwitchUser> Users;
 
         // Room Stats
 
@@ -18,7 +19,21 @@ namespace Project_Rem.Twitch
 
         public TwitchRoom(string roomName)
         {
+            roomName = roomName.Replace("#", "");
             RoomName = roomName;
+            ChatLog = new List<Message>();
+            MaxMessageStorageSize = 2000;
+            Users = new List<TwitchUser>();
+        }
+
+        public void LogMessage(Message message)
+        {
+            if (ChatLog.Count >= MaxMessageStorageSize)
+            {
+                ChatLog.RemoveAt(0);
+            }
+
+            ChatLog.Add(message);
         }
 
         public string GetRoomName()
@@ -26,5 +41,9 @@ namespace Project_Rem.Twitch
             return RoomName;
         }
 
+        public List<Message> GetChatLogs()
+        {
+            return ChatLog;
+        }
     }
 }

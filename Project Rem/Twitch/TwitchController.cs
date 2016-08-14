@@ -11,59 +11,6 @@ namespace Project_Rem.Twitch
     partial class TwitchController
     {
         List<TwitchChannel> Channels;
-
-        #region Handlers
-        /// <summary>
-        /// Teardown delegate from main callable within the bot for shutdown purposes
-        /// </summary>
-        public delegate void MessageHandler(Message message);
-
-        /// <summary>
-        /// A handler to our main's teardown function
-        /// </summary>
-        public MessageHandler MessageReceivedHandler;
-
-        /// <summary>
-        /// Teardown delegate from main callable within the bot for shutdown purposes
-        /// </summary>
-        public delegate void JoinedRoom(string roomName);
-
-        /// <summary>
-        /// A handler to our main's teardown function
-        /// </summary>
-        public JoinedRoom JoinedRoomHandler;
-
-        /// <summary>
-        /// Teardown delegate from main callable within the bot for shutdown purposes
-        /// </summary>
-        public delegate void LeftRoom(string roomName);
-
-        /// <summary>
-        /// A handler to our main's teardown function
-        /// </summary>
-        public LeftRoom LeftRoomHandler;
-
-        /// <summary>
-        /// Teardown delegate from main callable within the bot for shutdown purposes
-        /// </summary>
-        public delegate void Disconnected();
-
-        /// <summary>
-        /// A handler to our main's teardown function
-        /// </summary>
-        public Disconnected DisconnectedHandler;
-
-        /// <summary>
-        /// Teardown delegate from main callable within the bot for shutdown purposes
-        /// </summary>
-        public delegate void Connected();
-
-        /// <summary>
-        /// A handler to our main's teardown function
-        /// </summary>
-        public Connected ConnectedHandler;
-        #endregion
-
         private TwitchController() { }
         string UserName;
         string Oauth;
@@ -87,6 +34,7 @@ namespace Project_Rem.Twitch
 
             // Connect to Default Chat Group
             TwitchChannel privChannel = new TwitchChannel("irc.chat.twitch.tv", 6667, ChannelType.Default);
+            privChannel.ChatLogHandler += RecordToChatLog;
             if (privChannel.Connect(UserName, Oauth))
             {
                 Channels.Add(privChannel);
@@ -96,27 +44,27 @@ namespace Project_Rem.Twitch
             ReadMessages();
             SendMessages();
 
-            // Connect to Public Chat Group
-//            TwitchChannel pubChannel = new TwitchChannel("", "", ChannelType.Group);
-//            if (pubChannel.Connect(UserName, Oauth))
-//            {
-//                Channels.Add(pubChannel);
-//            }
             return toReturn;
         }
 
-        private TwitchChannel GetChannelByType(ChannelType type)
+        public void RecordToChatLog(Message message)
+        {
+            ChatLogHandler(message);
+        }
+
+        public TwitchChannel GetChannelByType(ChannelType type)
         {
             return Channels.Where(chan => chan.GetChannelType() == type).FirstOrDefault();
         }
 
         public bool JoinRoom(string roomName)
         {
-            bool toReturn = false;
-            Channels.FirstOrDefault().JoinRoom(roomName);
-
-            JoinedRoomHandler(roomName);
-            return toReturn;
+            if (Channels.FirstOrDefault().JoinRoom(roomName))
+            {
+                JoinedRoomHandler(roomName);
+                return true;
+            }
+            return false;
         }
 
         public bool LeaveRoom(string roomName)
@@ -145,6 +93,7 @@ namespace Project_Rem.Twitch
                 returned = channel.ReadMessages();
                 if (returned != null)
                 {
+                    ChatLogHandler(returned);
                     if (returned.system)
                     {
                         AddMessagesToSend(new List<Message>() { returned });
@@ -158,6 +107,11 @@ namespace Project_Rem.Twitch
 
         }
 
+        public bool IsConnected()
+        {
+            return GetChannelByType(ChannelType.Default).IsConnected();
+        }
+
         public void AddMessagesToSend(List<Message> messages)
         {
             if (messages == null) return;
@@ -167,6 +121,7 @@ namespace Project_Rem.Twitch
                 if (message.system)
                 {
                     GetChannelByType(ChannelType.Default).SendPriorityMessage(message);
+                    ChatLogHandler(message);
                 }
                 else
                 {
@@ -186,7 +141,7 @@ namespace Project_Rem.Twitch
 
         private void MessageSender()
         {
-            while (GetChannelByType(ChannelType.Default).IsConnected())
+            while (GetChannelByType(ChannelType.Default) == null || GetChannelByType(ChannelType.Default).IsConnected())
             {
                 if (PendingMessages.Count > 0)
                 {
@@ -196,9 +151,12 @@ namespace Project_Rem.Twitch
                         toSend = PendingMessages.Dequeue();
                     }
                     GetChannelByType(ChannelType.Default).SendPriorityMessage(toSend);
+                    ChatLogHandler(toSend);
                 }
                 Thread.Sleep(SenderCooldown);
             }
         }
+
+
     }
 }

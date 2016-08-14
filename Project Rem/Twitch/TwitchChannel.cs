@@ -40,6 +40,16 @@ namespace Project_Rem.Twitch
         /// </summary>
         private Byte[] dataBuffer;
 
+        /// <summary>
+        /// Teardown delegate from main callable within the bot for shutdown purposes
+        /// </summary>
+        public delegate void ChatLog(Message message);
+
+        /// <summary>
+        /// A handler to our main's teardown function
+        /// </summary>
+        public ChatLog ChatLogHandler;
+
 
         private TwitchChannel() { }
 
@@ -67,17 +77,20 @@ namespace Project_Rem.Twitch
             return toReturn;
         }
 
+        public void LogInfo(Message message, int priority = 0)
+        {
+            List<Message> toSend = new List<Message>();
+            toSend.Add(message);
+            SendPriorityMessage(message);
+            ChatLogHandler(message);
+        }
+
         private bool ConnectDefault(string username, string oauth)
         {
-            if (Connected)
-            {
-                Console.WriteLine("Controller: Already Connected to Twitch.");
-                return true;
-            }
-
             try
             {
-                Console.WriteLine("Controller: Attempting to connect to Twitch as user: " + username);
+                List<Message> toSend = new List<Message>();
+                LogInfo(new Message("Controller: Attempting to connect to Twitch as user: " + username, "System", null, false, "void", true));
                 string loginString = "PASS " + oauth + "\r\nNICK " + username + "\r\n";
                 byte[] login = System.Text.Encoding.ASCII.GetBytes(loginString);
                 tcpClient = new TcpClient(Url, Port);
@@ -91,7 +104,8 @@ namespace Project_Rem.Twitch
                     Int32 bytes = nStream.Read(dataBuffer, 0, dataBuffer.Length);
                     message = System.Text.Encoding.ASCII.GetString(dataBuffer, 0, bytes);
                     Connected = true;
-                    Console.WriteLine("Controller: Connected to Twitch as: " + username);
+                    LogInfo(new Message("Controller: Connected to Twitch as: " + username, "System", null, false, "void", true));
+                    CreateSystemRoom();
 
                     return true;
                 }
@@ -123,65 +137,27 @@ namespace Project_Rem.Twitch
             }
         }
 
-        private bool ConnectGroup(string username, string oauth)
+        private void CreateSystemRoom()
         {
-                if (Connected)
-                {
-                    Console.WriteLine("Controller: Already Connected to Twitch.");
-                    return true;
-                }
-
-                try
-                {
-                    Console.WriteLine("Controller: Attempting to connect to Twitch as user: " + username);
-                    string loginString = "PASS " + oauth + "\r\nNICK " + username + "\r\n";
-                    byte[] login = System.Text.Encoding.ASCII.GetBytes(loginString);
-                    tcpClient = new TcpClient("199.9.253.119", Port);
-
-
-                if (tcpClient != null)
-                    {
-                        nStream = tcpClient.GetStream();
-                        nStream.Write(login, 0, login.Length);
-                        string message = string.Empty;
-                        dataBuffer = new byte[512];
-                        Int32 bytes = nStream.Read(dataBuffer, 0, dataBuffer.Length);
-                        message = System.Text.Encoding.ASCII.GetString(dataBuffer, 0, bytes);
-                        Connected = true;
-                        Console.WriteLine("Controller: Connected to Twitch as: " + username);
-                        return true;
-                    }
-                    else
-                    {
-                        Console.WriteLine("FAILURE DETECTED CONNECTING TO TWITCH");
-                        return false;
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("ERROR DETECTED CONNECTING TO TWITCH");
-                    Console.Write(e.ToString());
-                    Connected = false;
-                    return false;
-                }
-            }
+            TwitchRoom system = new TwitchRoom("System");
+            Rooms.Add(system);
+        }
 
         public bool JoinRoom(string roomName)
         {
             if (!Connected)
             {
-                Console.WriteLine("Controller: Failure. Attempting to join room without being connected to Twitch.");
+                LogInfo(new Message("Controller: Failure. Attempting to join room without being connected to Twitch.", "system", null, false, "void", true));
                 return false;
             }
             try
             {
-                roomName = "#" + roomName.ToLowerInvariant();
-                if (Rooms.Where(room => room.GetRoomName().Contains(roomName)).ToList().Count > 0)
+                if (Rooms.Where(room => room.GetRoomName().ToLowerInvariant().Contains(roomName.ToLowerInvariant())).ToList().Count > 0)
                 {
-                    Console.WriteLine("Controller: Failure. Attempted to join room you're already in.");
-                    return true;
+                    LogInfo(new Message("Controller: Failure. Attempted to join room you're already in.", "system", null, false, "void", true));
+                    return false;
                 }
-
+                roomName = "#" + roomName;
                 String joinString = "JOIN " + roomName + "\r\n";
                 Byte[] join = System.Text.Encoding.ASCII.GetBytes(joinString);
                 nStream.Write(join, 0, join.Length);
@@ -205,9 +181,16 @@ namespace Project_Rem.Twitch
         {
             if (message == null) return;
 
+            if (message.whisperTarget != null && message.whisperTarget.Contains("void"))
+            {
+                GetRoom(message).LogMessage(message);
+                return;
+            }
+
             string formattedMessage = null;
             if (!message.whisper && message.system == false && message.room != null)
             {
+                message.room = message.room.ToLowerInvariant();
                 if (!message.room.StartsWith("#")) message.room = "#" + message.room;
                 formattedMessage = "PRIVMSG " + message.room + " :" + message.message + " \r\n";
             }
@@ -221,7 +204,38 @@ namespace Project_Rem.Twitch
             }
             byte[] toSend = System.Text.Encoding.ASCII.GetBytes(formattedMessage);
             nStream.Write(toSend, 0, toSend.Length);
-            Console.WriteLine("Sending: " + DateTime.Now + " - " + message.room + " : " + message.message);
+            string roomLookup = (message.room == null) ? "System" : message.room;
+            GetRoom(message).LogMessage(message);
+        }
+
+        public List<TwitchRoom> GetAllRooms()
+        {
+            return Rooms;
+        }
+
+        public TwitchRoom GetRoom(Message message)
+        {
+            if (message.system == true)
+            {
+                if (message.room == null)
+                {
+                    message.room = "System";
+                }
+            }
+
+            message.room = message.room.Replace("#", "");
+
+            foreach (TwitchRoom room in Rooms)
+            {
+                if (room.GetRoomName().ToLowerInvariant() == message.room.ToLowerInvariant())
+                {
+                    return room;
+                }
+            }
+
+            TwitchRoom newRoom = new TwitchRoom(message.room);
+            Rooms.Add(newRoom);
+            return newRoom;
         }
 
         public bool IsConnected()
@@ -232,7 +246,6 @@ namespace Project_Rem.Twitch
         private bool ParseSystemMessage(string message, out string returnMessage)
         {
             returnMessage = null;
-            bool toReturn = false;
 
             // Ping Pong
             if (message.Contains("PING :tmi.twitch.tv"))
@@ -244,9 +257,9 @@ namespace Project_Rem.Twitch
             // Room Joins
             foreach (TwitchRoom room in Rooms)
             {
-                if (message.Contains("JOIN " + room.GetRoomName()))
+                if (message.Contains("JOIN #" + room.GetRoomName()))
                 {
-                    Console.WriteLine("Controller: Successfully joined room: " + room.GetRoomName() + ".");
+                    LogInfo(new Message("Controller: Successfully joined room: " + room.GetRoomName() + ".", "system", null, false, "void", true));
                     return true;
                 }
             }
@@ -256,7 +269,14 @@ namespace Project_Rem.Twitch
                 // parse users here
                 return true;
             }
-            return toReturn;
+
+            if (message.Contains("-disconnect"))
+            {
+                Connected = false;
+                LogInfo(new Message("Disconnected from Twitch.", "system", null, false, "void", true));
+                return true;
+            }
+            return false;
         }
 
         public Message ReadMessages()
@@ -285,9 +305,17 @@ namespace Project_Rem.Twitch
                         string sender = MessageParser.ParseMessageSender(messageAsString);
                         bool whisper = MessageParser.ParseWhisperState(messageAsString);
                         Console.WriteLine(DateTime.Now.ToString() + " #" + room + " : " + sender + " : " + message);
-                        return new Message(message, room, whisper, sender);
+                        Message toReturn = new Message(message, "#" + room, sender);
+                        GetRoom(toReturn).LogMessage(toReturn);
+                        return toReturn;
                     }
-                    return (sysReturnMsg == null) ? null : new Message(sysReturnMsg, null, false, null, true);
+                    if (sysReturnMsg != null)
+                    {
+                        Message toReturn = new Message(sysReturnMsg, "System", null, false, null, true);
+                        GetRoom(toReturn).LogMessage(toReturn);
+                        return toReturn;
+                    }
+                    return null;
                 }
                 catch (Exception exc)
                 {
