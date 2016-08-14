@@ -45,14 +45,15 @@ namespace Project_Rem
         public void MessageReceivedHandler(Message message)
         {
             List<Message> toSend = Rem.ParseMessage(message);
-            controller.SendMessages(toSend);
+            controller.AddMessagesToSend(toSend);
         }
 
         private void Toolstrip_Connect_Click(object sender, EventArgs e)
         {
             Rem = new RemBot();
-            controller = new TwitchController("NaolinBot", "oauth:ob2wapvoj74l74aclhynrh2r0kcq4z");
-
+            //controller = new TwitchController("NaolinBot", "oauth:ob2wapvoj74l74aclhynrh2r0kcq4z");
+            controller = new TwitchController("RemuBot", "oauth:jumjklxvmvhgi6s4ae93ib5v8cyt4w");
+            
             controller.MessageReceivedHandler       += MessageReceivedHandler;
             controller.JoinedRoomHandler            += JoinedRoomHandler;
             controller.LeftRoomHandler              += LeftRoomHandler;

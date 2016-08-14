@@ -17,11 +17,10 @@ namespace Project_Rem
         /// <param name="rooms">List of active rooms we're in</param>
         /// <param name="message">Base message</param>
         /// <returns></returns>
-        public static string ParseRawMessage(List<string> rooms, string message)
+        public static string ParseRawMessage(string message)
         {
             string rawMessage = null;
-
-            string originroom = ParseOriginRoom(rooms, message) + " :";
+            string originroom = ParseOriginRoom(message) + " :";
             rawMessage = message.Split(new string[] { originroom }, StringSplitOptions.None).LastOrDefault();
             rawMessage = rawMessage.Split(new string[] { "\r\n" }, StringSplitOptions.None).FirstOrDefault();
             return rawMessage;
@@ -46,18 +45,10 @@ namespace Project_Rem
         /// <param name="rooms">List of active rooms we're in</param>
         /// <param name="message">Base message</param>
         /// <returns></returns>
-        public static string ParseOriginRoom(List<string> rooms, string message)
+        public static string ParseOriginRoom(string message)
         {
             string room = null;
-            string messageType = ParseMessageType(message);
-
-            if (messageType == null)
-            {
-                return room;
-            }
-            string rawMessage = message.Split(messageType.ToCharArray()).LastOrDefault();
-            List<string> brokenMessage = rawMessage.Split(' ').Where(s => !string.IsNullOrEmpty(s)).ToList();
-            room = brokenMessage.FirstOrDefault();
+            room = message.Split("#".ToCharArray(), 2).LastOrDefault().Split(' ').FirstOrDefault();
             return room;
         }
 

@@ -15,7 +15,9 @@ namespace Project_Rem.Core
 
         public List<Message> ParseMessage(Message message)
         {
-            List<Message> toReturn = null;
+            List<Message> toReturn = new List<Message>();
+
+            toReturn.Add(new Message("Beep boop!1", message.room, false, null));
 
             return toReturn;
         }

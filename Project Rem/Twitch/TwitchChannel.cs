@@ -43,13 +43,13 @@ namespace Project_Rem.Twitch
 
         private TwitchChannel() { }
 
-        public TwitchChannel(string channelName, string channelPort, ChannelType channelType)
+        public TwitchChannel(string channelName, int channelPort, ChannelType channelType)
         {
             Connected = false;
             Rooms = new List<TwitchRoom>();
             MyType = channelType;
-            Url = "irc.twitch.tv";
-            Port = 80;
+            Url = channelName;
+            Port = channelPort;
         }
 
         public ChannelType GetChannelType()
@@ -69,8 +69,6 @@ namespace Project_Rem.Twitch
 
         private bool ConnectDefault(string username, string oauth)
         {
-            TcpClient testC = new TcpClient("irc.chat.twitch.tv", 80);
-
             if (Connected)
             {
                 Console.WriteLine("Controller: Already Connected to Twitch.");
@@ -94,6 +92,7 @@ namespace Project_Rem.Twitch
                     message = System.Text.Encoding.ASCII.GetString(dataBuffer, 0, bytes);
                     Connected = true;
                     Console.WriteLine("Controller: Connected to Twitch as: " + username);
+
                     return true;
                 }
                 else
@@ -118,11 +117,54 @@ namespace Project_Rem.Twitch
                 case ChannelType.Default:
                     return ConnectDefault(username, oauth);
                 case ChannelType.Group:
-                    return ConnectDefault(username, oauth);
+                    //return ConnectGroup(username, oauth);
                 default:
                     return false;
             }
         }
+
+        private bool ConnectGroup(string username, string oauth)
+        {
+                if (Connected)
+                {
+                    Console.WriteLine("Controller: Already Connected to Twitch.");
+                    return true;
+                }
+
+                try
+                {
+                    Console.WriteLine("Controller: Attempting to connect to Twitch as user: " + username);
+                    string loginString = "PASS " + oauth + "\r\nNICK " + username + "\r\n";
+                    byte[] login = System.Text.Encoding.ASCII.GetBytes(loginString);
+                    tcpClient = new TcpClient("199.9.253.119", Port);
+
+
+                if (tcpClient != null)
+                    {
+                        nStream = tcpClient.GetStream();
+                        nStream.Write(login, 0, login.Length);
+                        string message = string.Empty;
+                        dataBuffer = new byte[512];
+                        Int32 bytes = nStream.Read(dataBuffer, 0, dataBuffer.Length);
+                        message = System.Text.Encoding.ASCII.GetString(dataBuffer, 0, bytes);
+                        Connected = true;
+                        Console.WriteLine("Controller: Connected to Twitch as: " + username);
+                        return true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("FAILURE DETECTED CONNECTING TO TWITCH");
+                        return false;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("ERROR DETECTED CONNECTING TO TWITCH");
+                    Console.Write(e.ToString());
+                    Connected = false;
+                    return false;
+                }
+            }
 
         public bool JoinRoom(string roomName)
         {
@@ -134,7 +176,6 @@ namespace Project_Rem.Twitch
             try
             {
                 roomName = "#" + roomName.ToLowerInvariant();
-
                 if (Rooms.Where(room => room.GetRoomName().Contains(roomName)).ToList().Count > 0)
                 {
                     Console.WriteLine("Controller: Failure. Attempted to join room you're already in.");
@@ -145,7 +186,6 @@ namespace Project_Rem.Twitch
                 Byte[] join = System.Text.Encoding.ASCII.GetBytes(joinString);
                 nStream.Write(join, 0, join.Length);
                 Rooms.Add(new TwitchRoom(roomName));
-                Console.WriteLine("Controller: Successfully joined room: " + roomName + ".");
             }
             catch
             {
@@ -163,7 +203,25 @@ namespace Project_Rem.Twitch
 
         public void SendPriorityMessage(Message message)
         {
+            if (message == null) return;
 
+            string formattedMessage = null;
+            if (!message.whisper && message.system == false && message.room != null)
+            {
+                if (!message.room.StartsWith("#")) message.room = "#" + message.room;
+                formattedMessage = "PRIVMSG " + message.room + " :" + message.message + " \r\n";
+            }
+            else if (message.room != null && message.system == false)
+            {
+                // Whisper logic here
+            }
+            else
+            {
+                formattedMessage = message.message;
+            }
+            byte[] toSend = System.Text.Encoding.ASCII.GetBytes(formattedMessage);
+            nStream.Write(toSend, 0, toSend.Length);
+            Console.WriteLine("Sending: " + DateTime.Now + " - " + message.room + " : " + message.message);
         }
 
         public bool IsConnected()
@@ -188,6 +246,7 @@ namespace Project_Rem.Twitch
             {
                 if (message.Contains("JOIN " + room.GetRoomName()))
                 {
+                    Console.WriteLine("Controller: Successfully joined room: " + room.GetRoomName() + ".");
                     return true;
                 }
             }
@@ -221,10 +280,11 @@ namespace Project_Rem.Twitch
                     string sysReturnMsg;
                     if (!ParseSystemMessage(messageAsString, out sysReturnMsg))
                     {
-                        string room = MessageParser.ParseOriginRoom(GetRoomList(), messageAsString);
-                        string message = MessageParser.ParseRawMessage(GetRoomList(), messageAsString);
+                        string room = MessageParser.ParseOriginRoom(messageAsString);
+                        string message = MessageParser.ParseRawMessage(messageAsString);
                         string sender = MessageParser.ParseMessageSender(messageAsString);
                         bool whisper = MessageParser.ParseWhisperState(messageAsString);
+                        Console.WriteLine(DateTime.Now.ToString() + " #" + room + " : " + sender + " : " + message);
                         return new Message(message, room, whisper, sender);
                     }
                     return (sysReturnMsg == null) ? null : new Message(sysReturnMsg, null, false, null, true);

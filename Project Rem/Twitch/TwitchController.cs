@@ -67,12 +67,18 @@ namespace Project_Rem.Twitch
         private TwitchController() { }
         string UserName;
         string Oauth;
+        Queue<Message> PendingMessages;
+        Object SendLocker;
+        TimeSpan SenderCooldown;
 
         public TwitchController(string username, string oauth)
         {
             Channels = new List<TwitchChannel>();
             UserName = username;
             Oauth = oauth;
+            PendingMessages = new Queue<Message>();
+            SenderCooldown = TimeSpan.FromMilliseconds(300);
+            SendLocker = new object();
         }
 
         public bool Connect()
@@ -80,7 +86,7 @@ namespace Project_Rem.Twitch
             bool toReturn = false;
 
             // Connect to Default Chat Group
-            TwitchChannel privChannel = new TwitchChannel("", "", ChannelType.Default);
+            TwitchChannel privChannel = new TwitchChannel("irc.chat.twitch.tv", 6667, ChannelType.Default);
             if (privChannel.Connect(UserName, Oauth))
             {
                 Channels.Add(privChannel);
@@ -88,16 +94,14 @@ namespace Project_Rem.Twitch
 
             // Set up Read and Send loops here
             ReadMessages();
-   //         SendMessages();
+            SendMessages();
 
             // Connect to Public Chat Group
-            //           TwitchChannel pubChannel = new TwitchChannel("", "", ChannelType.Group);
-            //           if (pubChannel.Connect(UserName, Oauth))
-            //           {
-            //               Channels.Add(pubChannel);
-            //           }
-
-
+//            TwitchChannel pubChannel = new TwitchChannel("", "", ChannelType.Group);
+//            if (pubChannel.Connect(UserName, Oauth))
+//            {
+//                Channels.Add(pubChannel);
+//            }
             return toReturn;
         }
 
@@ -127,12 +131,12 @@ namespace Project_Rem.Twitch
             foreach(TwitchChannel channel in Channels)
             {
                 // Thread this
-                Thread thread = new Thread(() => ReadChannel(channel));
+                Thread thread = new Thread(() => ChannelReader(channel));
                 thread.Start();
             }
         }
 
-        private void ReadChannel(TwitchChannel channel)
+        private void ChannelReader(TwitchChannel channel)
         {
             Message returned = null;
 
@@ -143,7 +147,7 @@ namespace Project_Rem.Twitch
                 {
                     if (returned.system)
                     {
-                        SendMessages(new List<Message>() { returned });
+                        AddMessagesToSend(new List<Message>() { returned });
                     }
                     else
                     {
@@ -154,16 +158,11 @@ namespace Project_Rem.Twitch
 
         }
 
-        private void AddMessageToSend(Message message)
-        {
-            GetChannelByType(ChannelType.Default).SendPriorityMessage(message);
-        }
-
-        public void SendMessages(List<Message> messages)
+        public void AddMessagesToSend(List<Message> messages)
         {
             if (messages == null) return;
 
-            foreach(Message message in messages)
+            foreach (Message message in messages)
             {
                 if (message.system)
                 {
@@ -171,8 +170,34 @@ namespace Project_Rem.Twitch
                 }
                 else
                 {
-                    AddMessageToSend(message);
+                    lock (SendLocker)
+                    {
+                        PendingMessages.Enqueue(message);
+                    }
                 }
+            }
+        }
+
+        private void SendMessages()
+        {
+            Thread thread = new Thread(() => MessageSender());
+            thread.Start();
+        }
+
+        private void MessageSender()
+        {
+            while (GetChannelByType(ChannelType.Default).IsConnected())
+            {
+                if (PendingMessages.Count > 0)
+                {
+                    Message toSend;
+                    lock (SendLocker)
+                    {
+                        toSend = PendingMessages.Dequeue();
+                    }
+                    GetChannelByType(ChannelType.Default).SendPriorityMessage(toSend);
+                }
+                Thread.Sleep(SenderCooldown);
             }
         }
     }
