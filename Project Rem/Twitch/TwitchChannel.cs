@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Project_Rem.Twitch
 {
@@ -131,7 +128,7 @@ namespace Project_Rem.Twitch
                 case ChannelType.Default:
                     return ConnectDefault(username, oauth);
                 case ChannelType.Group:
-                    //return ConnectGroup(username, oauth);
+                //return ConnectGroup(username, oauth);
                 default:
                     return false;
             }
@@ -157,7 +154,7 @@ namespace Project_Rem.Twitch
                     LogInfo(new Message("Controller: Failure. Attempted to join room you're already in.", "system", null, false, "void", true));
                     return false;
                 }
-                roomName = "#" + roomName;
+                roomName = "#" + roomName.ToLowerInvariant();
                 String joinString = "JOIN " + roomName + "\r\n";
                 Byte[] join = System.Text.Encoding.ASCII.GetBytes(joinString);
                 nStream.Write(join, 0, join.Length);
@@ -185,6 +182,15 @@ namespace Project_Rem.Twitch
             {
                 GetRoom(message).LogMessage(message);
                 return;
+            }
+
+            string sysReturnMsg;
+            if (ParseSystemMessage(message.message, out sysReturnMsg))
+            {
+                if (sysReturnMsg != null)
+                {
+                    message.message = sysReturnMsg;
+                }
             }
 
             string formattedMessage = null;
@@ -270,10 +276,10 @@ namespace Project_Rem.Twitch
                 return true;
             }
 
-            if (message.Contains("-disconnect"))
+            if (message.ToLowerInvariant().Contains("-disconnect"))
             {
-                Connected = false;
                 LogInfo(new Message("Disconnected from Twitch.", "system", null, false, "void", true));
+                Connected = false;
                 return true;
             }
             return false;
@@ -304,7 +310,6 @@ namespace Project_Rem.Twitch
                         string message = MessageParser.ParseRawMessage(messageAsString);
                         string sender = MessageParser.ParseMessageSender(messageAsString);
                         bool whisper = MessageParser.ParseWhisperState(messageAsString);
-                        Console.WriteLine(DateTime.Now.ToString() + " #" + room + " : " + sender + " : " + message);
                         Message toReturn = new Message(message, "#" + room, sender);
                         GetRoom(toReturn).LogMessage(toReturn);
                         return toReturn;
@@ -312,7 +317,6 @@ namespace Project_Rem.Twitch
                     if (sysReturnMsg != null)
                     {
                         Message toReturn = new Message(sysReturnMsg, "System", null, false, null, true);
-                        GetRoom(toReturn).LogMessage(toReturn);
                         return toReturn;
                     }
                     return null;

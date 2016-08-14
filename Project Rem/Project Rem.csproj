@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{3FCCB2A2-D148-49F3-92EE-8CC65C7E7178}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Project_Rem</RootNamespace>
     <AssemblyName>Project Rem</AssemblyName>
@@ -50,6 +50,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Forms\RoomJoinForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RoomJoinForm.Designer.cs">
+      <DependentUpon>RoomJoinForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Helpers\AssistFunctions.cs" />
     <Compile Include="Helpers\MessageParser.cs" />
     <Compile Include="RemBot\RemBot.cs" />
@@ -70,6 +76,9 @@
     <Compile Include="Twitch\TwitchUser.cs" />
     <EmbeddedResource Include="Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RoomJoinForm.resx">
+      <DependentUpon>RoomJoinForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

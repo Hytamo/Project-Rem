@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Project_Rem.Core
 {
@@ -26,7 +22,7 @@ namespace Project_Rem.Core
         {
             List<Message> toReturn = new List<Message>();
 
-            toReturn.Add(new Message("Beep boop!1", message.room, BotName));
+        //    toReturn.Add(new Message("Beep boop!1", message.room, BotName));
 
             return toReturn;
         }

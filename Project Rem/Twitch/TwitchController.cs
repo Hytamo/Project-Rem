@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Project_Rem.Twitch
 {
@@ -78,7 +75,6 @@ namespace Project_Rem.Twitch
         {
             foreach(TwitchChannel channel in Channels)
             {
-                // Thread this
                 Thread thread = new Thread(() => ChannelReader(channel));
                 thread.Start();
             }
@@ -104,7 +100,7 @@ namespace Project_Rem.Twitch
                     }
                 }
             } while (GetChannelByType(ChannelType.Default).IsConnected());
-
+            DisconnectedHandler();
         }
 
         public bool IsConnected()
@@ -121,7 +117,6 @@ namespace Project_Rem.Twitch
                 if (message.system)
                 {
                     GetChannelByType(ChannelType.Default).SendPriorityMessage(message);
-                    ChatLogHandler(message);
                 }
                 else
                 {
@@ -141,22 +136,27 @@ namespace Project_Rem.Twitch
 
         private void MessageSender()
         {
-            while (GetChannelByType(ChannelType.Default) == null || GetChannelByType(ChannelType.Default).IsConnected())
+            try
             {
-                if (PendingMessages.Count > 0)
+                while (GetChannelByType(ChannelType.Default) == null || GetChannelByType(ChannelType.Default).IsConnected())
                 {
-                    Message toSend;
-                    lock (SendLocker)
+                    if (PendingMessages.Count > 0)
                     {
-                        toSend = PendingMessages.Dequeue();
+                        Message toSend;
+                        lock (SendLocker)
+                        {
+                            toSend = PendingMessages.Dequeue();
+                        }
+                        GetChannelByType(ChannelType.Default).SendPriorityMessage(toSend);
+                        ChatLogHandler(toSend);
                     }
-                    GetChannelByType(ChannelType.Default).SendPriorityMessage(toSend);
-                    ChatLogHandler(toSend);
+                    Thread.Sleep(SenderCooldown);
                 }
-                Thread.Sleep(SenderCooldown);
+            }
+            catch(Exception)
+            {
+
             }
         }
-
-
     }
 }

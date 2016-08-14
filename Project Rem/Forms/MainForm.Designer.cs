@@ -37,7 +37,7 @@
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.printToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Toolstip_Disconnect = new System.Windows.Forms.ToolStripMenuItem();
             this.printPreviewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -61,9 +61,9 @@
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.RoomTabControl = new System.Windows.Forms.TabControl();
             this.SystemTab = new System.Windows.Forms.TabPage();
+            this.systemchatbox = new System.Windows.Forms.RichTextBox();
             this.TextBox_Message = new System.Windows.Forms.TextBox();
             this.Button_Submit = new System.Windows.Forms.Button();
-            this.systemchatbox = new System.Windows.Forms.RichTextBox();
             this.menuStrip1.SuspendLayout();
             this.RoomTabControl.SuspendLayout();
             this.SystemTab.SuspendLayout();
@@ -91,7 +91,7 @@
             this.saveToolStripMenuItem,
             this.saveAsToolStripMenuItem,
             this.toolStripSeparator1,
-            this.printToolStripMenuItem,
+            this.Toolstip_Disconnect,
             this.printPreviewToolStripMenuItem,
             this.toolStripSeparator2,
             this.exitToolStripMenuItem});
@@ -144,14 +144,14 @@
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(165, 6);
             // 
-            // printToolStripMenuItem
+            // Toolstip_Disconnect
             // 
-            this.printToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("printToolStripMenuItem.Image")));
-            this.printToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.printToolStripMenuItem.Name = "printToolStripMenuItem";
-            this.printToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.P)));
-            this.printToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
-            this.printToolStripMenuItem.Text = "&Print";
+            this.Toolstip_Disconnect.Image = ((System.Drawing.Image)(resources.GetObject("Toolstip_Disconnect.Image")));
+            this.Toolstip_Disconnect.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.Toolstip_Disconnect.Name = "Toolstip_Disconnect";
+            this.Toolstip_Disconnect.Size = new System.Drawing.Size(168, 22);
+            this.Toolstip_Disconnect.Text = "Disconnect";
+            this.Toolstip_Disconnect.Click += new System.EventHandler(this.Toolstip_Disconnect_Click);
             // 
             // printPreviewToolStripMenuItem
             // 
@@ -171,6 +171,7 @@
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
             this.exitToolStripMenuItem.Text = "E&xit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // editToolStripMenuItem
             // 
@@ -327,6 +328,17 @@
             this.SystemTab.Text = "System";
             this.SystemTab.UseVisualStyleBackColor = true;
             // 
+            // systemchatbox
+            // 
+            this.systemchatbox.BackColor = System.Drawing.Color.White;
+            this.systemchatbox.Location = new System.Drawing.Point(6, 4);
+            this.systemchatbox.Name = "systemchatbox";
+            this.systemchatbox.ReadOnly = true;
+            this.systemchatbox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedVertical;
+            this.systemchatbox.Size = new System.Drawing.Size(683, 358);
+            this.systemchatbox.TabIndex = 3;
+            this.systemchatbox.Text = "";
+            // 
             // TextBox_Message
             // 
             this.TextBox_Message.Location = new System.Drawing.Point(12, 423);
@@ -344,16 +356,6 @@
             this.Button_Submit.UseVisualStyleBackColor = true;
             this.Button_Submit.Click += new System.EventHandler(this.Button_Submit_Click);
             // 
-            // systemchatbox
-            // 
-            this.systemchatbox.Location = new System.Drawing.Point(6, 6);
-            this.systemchatbox.Name = "systemchatbox";
-            this.systemchatbox.ReadOnly = true;
-            this.systemchatbox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedVertical;
-            this.systemchatbox.Size = new System.Drawing.Size(683, 353);
-            this.systemchatbox.TabIndex = 3;
-            this.systemchatbox.Text = "";
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -365,7 +367,8 @@
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
-            this.Text = "Form1";
+            this.Text = "Rem";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.RoomTabControl.ResumeLayout(false);
@@ -385,7 +388,7 @@
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripMenuItem printToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem Toolstip_Disconnect;
         private System.Windows.Forms.ToolStripMenuItem printPreviewToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;

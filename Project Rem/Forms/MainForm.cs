@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using Project_Rem.Core;
 using Project_Rem.Twitch;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace Project_Rem
 {
     public partial class MainForm : Form
     {
+        [DllImport("user32.dll")]
+        public static extern int PostMessage(IntPtr wnd, uint Msg, IntPtr wParam, IntPtr lParam);
+        public const uint WM_VSCROLL = 0x0115;
+        public const uint SB_BOTTOM = 7;
+
         RemBot Rem;
         TwitchController controller;
         object chatupdateLocker;
@@ -33,7 +34,32 @@ namespace Project_Rem
 
         public void DisconnectedHandler()
         {
+            try
+            {
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(DisconnectedHandler), new object[] { });
+                    return;
+                }
 
+                if (RoomTabControl != null)
+                {
+                    foreach (TabPage tab in RoomTabControl.TabPages)
+                    {
+                        if (tab.Text.ToLowerInvariant() != "System".ToLowerInvariant())
+                        {
+                            RoomTabControl.TabPages.Remove(tab);
+                        }
+                    } 
+                    RoomTabControl.Invalidate();
+                    Thread.Sleep(100);
+                    controller = null;
+                }
+            }
+            catch(System.ObjectDisposedException)
+            {
+
+            }
         }
 
         public void LeftRoomHandler(string roomName)
@@ -65,10 +91,10 @@ namespace Project_Rem
             newTab.BackColor = Color.White;
             TabPage sysTab = RoomTabControl.TabPages[0];
             RichTextBox chatBox = new RichTextBox();
-            chatBox.Height = sysTab.Height - 12;
+            chatBox.Height = sysTab.Height - 7;
             chatBox.Width = sysTab.Width - 12;
             chatBox.Left = sysTab.Left + 2;
-            chatBox.Top = sysTab.Top - 16;
+            chatBox.Top = sysTab.Top - 18;
             chatBox.BackColor = Color.White;
             chatBox.ScrollBars = RichTextBoxScrollBars.ForcedVertical;
             chatBox.Name = roomName + "chatbox";
@@ -97,14 +123,18 @@ namespace Project_Rem
                         if ((tab.Controls[0] as RichTextBox).TextLength > 0)
                         {
                             (tab.Controls[0] as RichTextBox).AppendText(Environment.NewLine);
+                            PostMessage((tab.Controls[0] as RichTextBox).Handle, WM_VSCROLL, (IntPtr)SB_BOTTOM, (IntPtr)IntPtr.Zero);
+
                         }
                         if (message.system)
                         {
-                            (tab.Controls[0] as RichTextBox).AppendText(DateTime.Now + " : " + message.message);
+                            (tab.Controls[0] as RichTextBox).AppendText(DateTime.Now + " : " + message.message.TrimEnd("\r\n".ToCharArray()));
+                            PostMessage((tab.Controls[0] as RichTextBox).Handle, WM_VSCROLL, (IntPtr)SB_BOTTOM, (IntPtr)IntPtr.Zero);
                         }
                         else
                         {
-                            (tab.Controls[0] as RichTextBox).AppendText(DateTime.Now + " : " + message.room + " : " + message.sender + " : " + message.message);
+                            (tab.Controls[0] as RichTextBox).AppendText(DateTime.Now + " - " + message.sender + ": " + message.message);
+                            PostMessage((tab.Controls[0] as RichTextBox).Handle, WM_VSCROLL, (IntPtr)SB_BOTTOM, (IntPtr)IntPtr.Zero);
                         }
                         tab.Controls[0].Invalidate();
                         break;
@@ -121,7 +151,7 @@ namespace Project_Rem
 
         private void Toolstrip_Connect_Click(object sender, EventArgs e)
         {
-            if (Rem != null)
+            if (Rem != null && controller != null)
             {
                 List<Message> toSend = new List<Message>();
                 toSend.Add(new Message("Already Connected!", "System", null, false, "void", true));
@@ -129,7 +159,11 @@ namespace Project_Rem
                 return;
             }
 
-            Rem = new RemBot("RemuBot");
+            if (Rem == null)
+            {
+                Rem = new RemBot("RemuBot");
+            }
+
             //controller = new TwitchController("NaolinBot", "oauth:ob2wapvoj74l74aclhynrh2r0kcq4z");
             controller = new TwitchController(Rem.GetBotName(), "oauth:jumjklxvmvhgi6s4ae93ib5v8cyt4w");
             
@@ -146,7 +180,8 @@ namespace Project_Rem
         {
             if (controller.IsConnected())
             {
-                controller.JoinRoom("Hytamo");
+                Forms.RoomJoinForm getRoomForm = new Forms.RoomJoinForm(controller.JoinRoom);
+                var result = getRoomForm.ShowDialog();
             }
         }
 
@@ -166,6 +201,41 @@ namespace Project_Rem
                         TextBox_Message.Text = "";
                     }
                 }
+            }
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (controller != null && controller.IsConnected())
+            {
+                List<Message> toSend = new List<Message>();
+                Message tMes = new Message("-disconnect", "System", null, false, null, true);
+                toSend.Add(tMes);
+                controller.AddMessagesToSend(toSend);
+            }
+            else if (controller != null)
+            {
+                controller = null;
+            }
+        }
+
+        private void Toolstip_Disconnect_Click(object sender, EventArgs e)
+        {
+            if (controller != null && controller.IsConnected())
+            {
+                List<Message> toSend = new List<Message>();
+                Message tMes = new Message("-disconnect", "System", null, false, null, true);
+                toSend.Add(tMes);
+                controller.AddMessagesToSend(toSend);
+            }
+            else if (controller != null)
+            {
+                controller = null;
             }
         }
     }
