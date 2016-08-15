@@ -7,6 +7,7 @@ using Project_Rem.Core;
 using Project_Rem.Twitch;
 using System.Threading;
 using System.Runtime.InteropServices;
+using System.Linq;
 
 namespace Project_Rem
 {
@@ -76,6 +77,21 @@ namespace Project_Rem
             if (toRemove != null)
                 RoomTabControl.TabPages.Remove(toRemove);
         }
+
+        private void tabClicked(object sender, MouseEventArgs e)
+        {
+            var tabControl = sender as TabControl;
+            var tabs = tabControl.TabPages;
+
+            if (e.Button == MouseButtons.Middle)
+            {
+                TabPage theTab = tabs.Cast<TabPage>().Where((t, i) => tabControl.GetTabRect(i).Contains(e.Location)).First();
+                controller.LeaveRoom(theTab.Text.ToLowerInvariant());
+                theTab.Controls.Clear();
+                tabs.Remove(theTab);
+            }
+        }
+
 
         public void JoinedRoomHandler(string roomName)
         {
@@ -178,6 +194,11 @@ namespace Project_Rem
 
         private void Toolstrip_JoinRoom_Click(object sender, EventArgs e)
         {
+            if (controller == null)
+            {
+                AppendChatBox(new Message("Please connect to Twitch first.", "system", null, false, "void", true));
+                return;
+            }
             if (controller.IsConnected())
             {
                 Forms.RoomJoinForm getRoomForm = new Forms.RoomJoinForm(controller.JoinRoom);

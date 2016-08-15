@@ -136,6 +136,11 @@ namespace Project_Rem.Twitch
 
         private void CreateSystemRoom()
         {
+            if (Rooms.Where(r => r.GetRoomName().Contains("system")).ToList().Count > 0)
+            {
+                return;
+            }
+
             TwitchRoom system = new TwitchRoom("System");
             Rooms.Add(system);
         }
@@ -170,7 +175,7 @@ namespace Project_Rem.Twitch
         public bool LeaveRoom(string roomName)
         {
             bool toReturn = false;
-
+            SendPriorityMessage(new Message("PART #" + roomName.TrimStart('#').ToLowerInvariant(), "System", null, false, null, true));
             return toReturn;
         }
 
@@ -260,15 +265,30 @@ namespace Project_Rem.Twitch
                 return true;
             }
 
-            // Room Joins
+            // Room/Part Joins
             foreach (TwitchRoom room in Rooms)
             {
+                // :remubot!remubot@remubot.tmi.twitch.tv PART #hytamoJOIN
+                if (message.Contains("tmi.twitch.tv PART #" + room.GetRoomName() + "JOIN"))
+                {
+                    LogInfo(new Message("Controller: Successfully joined room: " + room.GetRoomName() + ".", "system", null, false, "void", true));
+                    return true;
+                }
+
                 if (message.Contains("JOIN #" + room.GetRoomName()))
                 {
                     LogInfo(new Message("Controller: Successfully joined room: " + room.GetRoomName() + ".", "system", null, false, "void", true));
                     return true;
                 }
+
+                if (message.Contains("PART #" + room.GetRoomName()))
+                {
+                    LogInfo(new Message("Controller: Successfully left room: " + room.GetRoomName() + ".", "system", null, false, "void", true));
+                    Rooms.Remove(room);
+                    return true;
+                }
             }
+            
 
             if (message.Contains("End of /NAMES list"))
             {

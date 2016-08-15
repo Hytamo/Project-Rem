@@ -15,7 +15,7 @@ namespace Project_Rem.Twitch
 
         public TwitchRoom(string roomName)
         {
-            roomName = roomName.Replace("#", "");
+            roomName = roomName.Replace("#", "").ToLowerInvariant();
             RoomName = roomName;
             ChatLog = new List<Message>();
             MaxMessageStorageSize = 2000;
