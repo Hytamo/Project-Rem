@@ -50,25 +50,24 @@
             this.searchToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.RoomTabControl = new System.Windows.Forms.TabControl();
-            this.SystemTab = new System.Windows.Forms.TabPage();
-            this.systemchatbox = new System.Windows.Forms.RichTextBox();
             this.TextBox_Message = new System.Windows.Forms.TextBox();
             this.Button_Submit = new System.Windows.Forms.Button();
+            this.btn_system = new System.Windows.Forms.Button();
+            this.rtb_system = new System.Windows.Forms.RichTextBox();
             this.menuStrip1.SuspendLayout();
-            this.RoomTabControl.SuspendLayout();
-            this.SystemTab.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
             // 
+            this.menuStrip1.BackColor = System.Drawing.Color.Transparent;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.toolsToolStripMenuItem,
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(727, 24);
+            this.menuStrip1.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.menuStrip1.Size = new System.Drawing.Size(748, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -225,73 +224,72 @@
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
             this.aboutToolStripMenuItem.Text = "&About...";
             // 
-            // RoomTabControl
-            // 
-            this.RoomTabControl.Controls.Add(this.SystemTab);
-            this.RoomTabControl.Location = new System.Drawing.Point(12, 27);
-            this.RoomTabControl.Name = "RoomTabControl";
-            this.RoomTabControl.SelectedIndex = 0;
-            this.RoomTabControl.ShowToolTips = true;
-            this.RoomTabControl.Size = new System.Drawing.Size(703, 391);
-            this.RoomTabControl.TabIndex = 1;
-            this.RoomTabControl.MouseClick += new System.Windows.Forms.MouseEventHandler(this.tabClicked);
-            // 
-            // SystemTab
-            // 
-            this.SystemTab.Controls.Add(this.systemchatbox);
-            this.SystemTab.Location = new System.Drawing.Point(4, 22);
-            this.SystemTab.Name = "SystemTab";
-            this.SystemTab.Padding = new System.Windows.Forms.Padding(3);
-            this.SystemTab.Size = new System.Drawing.Size(695, 365);
-            this.SystemTab.TabIndex = 0;
-            this.SystemTab.Text = "System";
-            this.SystemTab.UseVisualStyleBackColor = true;
-            // 
-            // systemchatbox
-            // 
-            this.systemchatbox.BackColor = System.Drawing.Color.White;
-            this.systemchatbox.Location = new System.Drawing.Point(6, 4);
-            this.systemchatbox.Name = "systemchatbox";
-            this.systemchatbox.ReadOnly = true;
-            this.systemchatbox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedVertical;
-            this.systemchatbox.Size = new System.Drawing.Size(683, 358);
-            this.systemchatbox.TabIndex = 3;
-            this.systemchatbox.Text = "";
-            // 
             // TextBox_Message
             // 
-            this.TextBox_Message.Location = new System.Drawing.Point(12, 423);
+            this.TextBox_Message.BackColor = System.Drawing.Color.Azure;
+            this.TextBox_Message.Location = new System.Drawing.Point(12, 422);
             this.TextBox_Message.Name = "TextBox_Message";
-            this.TextBox_Message.Size = new System.Drawing.Size(586, 20);
+            this.TextBox_Message.Size = new System.Drawing.Size(405, 20);
             this.TextBox_Message.TabIndex = 0;
             // 
             // Button_Submit
             // 
-            this.Button_Submit.Location = new System.Drawing.Point(604, 422);
+            this.Button_Submit.BackColor = System.Drawing.Color.Transparent;
+            this.Button_Submit.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("Button_Submit.BackgroundImage")));
+            this.Button_Submit.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.Button_Submit.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Button_Submit.ForeColor = System.Drawing.Color.Black;
+            this.Button_Submit.Location = new System.Drawing.Point(423, 421);
             this.Button_Submit.Name = "Button_Submit";
-            this.Button_Submit.Size = new System.Drawing.Size(111, 22);
+            this.Button_Submit.Size = new System.Drawing.Size(86, 22);
             this.Button_Submit.TabIndex = 2;
             this.Button_Submit.Text = "Submit";
-            this.Button_Submit.UseVisualStyleBackColor = true;
+            this.Button_Submit.UseVisualStyleBackColor = false;
             this.Button_Submit.Click += new System.EventHandler(this.Button_Submit_Click);
+            // 
+            // btn_system
+            // 
+            this.btn_system.BackColor = System.Drawing.Color.Transparent;
+            this.btn_system.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("btn_system.BackgroundImage")));
+            this.btn_system.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btn_system.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_system.Location = new System.Drawing.Point(423, 27);
+            this.btn_system.Name = "btn_system";
+            this.btn_system.Size = new System.Drawing.Size(86, 26);
+            this.btn_system.TabIndex = 3;
+            this.btn_system.Text = "system";
+            this.btn_system.UseVisualStyleBackColor = false;
+            // 
+            // rtb_system
+            // 
+            this.rtb_system.BackColor = System.Drawing.Color.Azure;
+            this.rtb_system.Location = new System.Drawing.Point(12, 27);
+            this.rtb_system.Name = "rtb_system";
+            this.rtb_system.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.rtb_system.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedVertical;
+            this.rtb_system.Size = new System.Drawing.Size(405, 377);
+            this.rtb_system.TabIndex = 4;
+            this.rtb_system.Text = "";
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(727, 456);
+            this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
+            this.ClientSize = new System.Drawing.Size(748, 456);
+            this.Controls.Add(this.rtb_system);
+            this.Controls.Add(this.btn_system);
             this.Controls.Add(this.Button_Submit);
             this.Controls.Add(this.TextBox_Message);
-            this.Controls.Add(this.RoomTabControl);
             this.Controls.Add(this.menuStrip1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "Rem";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
-            this.RoomTabControl.ResumeLayout(false);
-            this.SystemTab.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -320,11 +318,10 @@
         private System.Windows.Forms.ToolStripMenuItem searchToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-        private System.Windows.Forms.TabControl RoomTabControl;
-        private System.Windows.Forms.TabPage SystemTab;
         private System.Windows.Forms.TextBox TextBox_Message;
         private System.Windows.Forms.Button Button_Submit;
-        private System.Windows.Forms.RichTextBox systemchatbox;
+        private System.Windows.Forms.Button btn_system;
+        private System.Windows.Forms.RichTextBox rtb_system;
     }
 }
 

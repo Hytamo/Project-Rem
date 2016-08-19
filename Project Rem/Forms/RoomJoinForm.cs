@@ -5,7 +5,7 @@ namespace Project_Rem.Forms
 {
     public partial class RoomJoinForm : Form
     {
-        public delegate bool SetRoomFunc(string s);
+        public delegate void SetRoomFunc(string s);
         public SetRoomFunc SetRoomHandler;
         public RoomJoinForm(SetRoomFunc s)
         {

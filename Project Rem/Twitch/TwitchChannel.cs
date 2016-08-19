@@ -164,7 +164,7 @@ namespace Project_Rem.Twitch
                 Byte[] join = System.Text.Encoding.ASCII.GetBytes(joinString);
                 nStream.Write(join, 0, join.Length);
                 Rooms.Add(new TwitchRoom(roomName));
-            }
+            }                                                                               
             catch
             {
                 return false;
@@ -179,14 +179,14 @@ namespace Project_Rem.Twitch
             return toReturn;
         }
 
-        public void SendPriorityMessage(Message message)
+        private string PrepareMessage(Message message)
         {
-            if (message == null) return;
+            if (message == null) return null;
 
             if (message.whisperTarget != null && message.whisperTarget.Contains("void"))
             {
                 GetRoom(message).LogMessage(message);
-                return;
+                return null;
             }
 
             string sysReturnMsg;
@@ -213,6 +213,15 @@ namespace Project_Rem.Twitch
             {
                 formattedMessage = message.message;
             }
+
+            return formattedMessage;
+        }
+
+        public void SendPriorityMessage(Message message)
+        {
+            string formattedMessage = PrepareMessage(message);
+            if (formattedMessage == null) return;
+
             byte[] toSend = System.Text.Encoding.ASCII.GetBytes(formattedMessage);
             nStream.Write(toSend, 0, toSend.Length);
             string roomLookup = (message.room == null) ? "System" : message.room;
